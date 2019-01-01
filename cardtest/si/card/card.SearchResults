@@ -1,0 +1,8 @@
+---- pcd_RST Matches (7 in 4 files) ----
+Card.c:		pcd_RST(fd);
+Card.c:		pcd_RST(fd);
+Fm175xx.c (src\fm175xx):    pcd_RST(fd);                                                      /* Ó²¼þ¸´Î»                         */
+Fm175xx.c (src\fm175xx):** Function name:       pcd_RST
+Fm175xx.c (src\fm175xx):void pcd_RST(int fd)
+Fm175xx.h (inc):void pcd_RST(int fd);
+Main.c:	pcd_RST(fd);

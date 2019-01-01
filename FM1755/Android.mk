@@ -1,0 +1,7 @@
+LOCAL_PATH:= $(call my-dir)
+include $(CLEAR_VARS)
+
+LOCAL_SRC_FILES:=MAIN.c uart.c gpio.c LPCD_API.c FM175XX.c READER_API.c
+LOCAL_MODULE := FM175X  
+LOCAL_MODULE_TAGS := optional  
+include $(BUILD_EXECUTABLE)

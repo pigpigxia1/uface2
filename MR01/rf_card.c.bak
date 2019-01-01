@@ -1,0 +1,85 @@
+#include <stdio.h>
+#include "card.h"
+
+//static unsigned char card_data_buff[1024];
+
+const unsigned char rf_cmd_array[][3]=
+{
+	{SEND_CMD_HEAD,RF_CARD_OPERATE_CMD,RF_CARD_ACTIV},
+	{SEND_CMD_HEAD,RF_CARD_OPERATE_CMD,RF_CARD_POWER_DOWN},
+	{SEND_CMD_HEAD,RF_CARD_OPERATE_CMD,RF_CARD_CHECK_STATUS},
+	{SEND_CMD_HEAD,RF_CARD_OPERATE_CMD,RF_CARD_MAFARE_RDWR},
+	{SEND_CMD_HEAD,RF_CARD_OPERATE_CMD,RF_CARD_A_CL_DATA_SWAP},
+	{SEND_CMD_HEAD,RF_CARD_OPERATE_CMD,RF_CARD_B_CL_DATA_SWAP},
+	{SEND_CMD_HEAD,RF_CARD_OPERATE_CMD,RF_CAED_WAKE_SLEEP}
+};
+
+static void rf_card_reset(PCARD_INFO card_info)
+{
+	send_pack(card_info->pack_buff.pack_data_head,card_info->pack_buff.pack_len);
+	
+}
+
+static void rf_card_power_down(PCARD_INFO card_info)
+{
+	
+}
+
+static CARD_TYPR check_rf_card_type(PCARD_INFO card_info)
+{
+	return NO_RF_CARD_ACTIVE;
+}
+
+static BOOL check_passwd()
+{
+	return ERR;
+}
+
+static BOOL check_passwd_from_eprom(PCARD_INFO card_info)
+{
+	return ERR;
+}
+
+static BOOL modify_passwd(PCARD_INFO card_info)
+{
+	return ERR;
+}
+
+static BOOL load_passwd_to_eprom(PCARD_INFO card_info)
+{
+	return ERR;
+}
+
+static BOOL read_sector_block(PCARD_INFO card_info)
+{
+	return ERR;
+}
+
+static BOOL write_sector_block(PCARD_INFO card_info)
+{
+	return ERR;
+}
+
+static BOOL sector_init(PCARD_INFO card_info)
+{
+	return ERR;
+}
+
+static BOOL read_sector_line(PCARD_INFO card_info)
+{
+	return ERR;
+}
+
+static BOOL add_data_to_sector(PCARD_INFO card_info)
+{
+	return ERR;
+}
+static BOOL dec_data_to_sector(PCARD_INFO card_info)
+{
+	return ERR;
+}
+
+int rf_card_init(PCARD_INFO card_info)
+{
+		return 0;
+}
