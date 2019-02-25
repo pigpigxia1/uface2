@@ -30,6 +30,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include "uart.h"
+#include "hid.h"
 
 #include "string.h"
 
@@ -111,7 +112,7 @@ int main(void)
 		
 		//fd = uart_init(9600,8,'N',1);
 		gettimeofday(&start, NULL);
-		len = Read_Card(fd,new_key,dat_buf,2048,SET_FLAG(0,1,1019));
+		len = Read_Card(fd,new_key,dat_buf,2048,SET_FLAG(3,0,0));
 		//len = Get_Uid(fd,dat_buf,2048);
 		gettimeofday(&end, NULL);
 		//t2 = clock();

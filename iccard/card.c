@@ -34,6 +34,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include "uart.h"
+#include "hid.h"
 #include "exception.h"
 //#include "cpu_card.h"
 
@@ -473,7 +474,18 @@ end:
 	return ret_len;
 }
 
-
+/****************************************************************
+名称: Read_Card                           
+功能: 读卡片ID                                   
+输入:  key：密钥
+																														
+                                                                                                                                  
+输出:                                                  
+         buff：数据缓存	
+		len  :缓存长度
+		flag:SET_FLAG(3,0,0)读HID卡号;SET_FLAG(0,0,gpio):读IC卡
+return :读出字节数                                                    
+*****************************************************************/
 int Read_Card(int fd,unsigned char *key,unsigned char *buff,int len,unsigned int flag)
 {
 	unsigned char block;
@@ -526,6 +538,9 @@ int Read_Card(int fd,unsigned char *key,unsigned char *buff,int len,unsigned int
 			break;
 		case READ_CPU_CARD:
 		
+			break;
+		case READ_HID_CARD:
+			ret = read_hid_card(fd,buff,len);
 			break;
 		default:
 			return 0;
