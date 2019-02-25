@@ -191,6 +191,66 @@ void TyteB_Test (int fd)
     Set_Rf(fd, 0 );                                                        /* 关闭天线                     */    
 }
 
+void M1Card_Test (int fd)
+{
+	unsigned char statues = TRUE;
+	//unsigned char ret;
+    unsigned char num=0;
+	unsigned char nbit = 0;
+	//unsigned char rec_len;
+	//unsigned char rec_buf[64];
+	
+    unsigned char picc_atqa[2];                               /* 储存寻卡返回卡片类型信息     */
+    static unsigned char picc_uid[15];                       /* 储存卡片UID信息              */
+    unsigned char picc_sak[3];            /* 储存卡片应答信息      ,可判断是否为CPU卡  b6 = 0:不是cpu     */
+	unsigned char M1_key[6] = {0x6d,0x69,0x6c,0x6c,0x69,0x6f};
+	unsigned char buff[16];
+	
+	
+	FM175X_SoftReset( fd);                                  /* FM175xx软件复位              */
+	Set_Rf(fd, 3 );                                         /* 打开双天线                   */
+	Pcd_ConfigISOType(fd, 0 );                              /* ISO14443寄存器初始化         */
+
+    
+    //printf("%s:%d\n",__FUNCTION__,__LINE__);
+	while(num <2 ) {
+        statues = TypeA_CardActive(fd, picc_atqa,picc_uid,picc_sak ,&nbit);      /* 激活卡片                     */
+        if ( statues == TRUE ) {
+            num = 0;
+            //TypeA_Halt(fd,0);                                              // 睡眠卡片                     
+            //LED_RedOn();
+            //printf("picc_sak:%x %x %x\n",picc_sak[0],picc_sak[1],picc_sak[2]);
+			//printf("picc_atqa:%x %x\n",picc_atqa[0],picc_atqa[1]);
+            printf("CardUID:0x");
+            UartSendUid(picc_atqa,picc_uid);  
+			statues = Mifare_Auth(fd,0x00,0,M1_key,picc_uid);      // 校验密码                     
+            if ( statues == TRUE ) {
+                printf("\nAuth Ok!\r\n");
+				if(!Mifare_Blockread(fd,0x01,buff))
+				{
+					printf("blockread error!\n");
+					return FALSE;
+				}
+				printf("read data:");
+				uartSendHex(buff,16);
+				printf("\n");
+            }
+            else {
+                printf("\nAuth error!\r\n");
+            }
+			
+			//print_uid(picc_atqa,picc_uid);
+            //printf("\r\nTyteA_Test\n");     
+            //memset(picc_uid,0x00,15);                    
+        }
+        else {
+			//printf("%s:%d\n",__FUNCTION__,__LINE__);
+            num++;
+        }                    
+    }
+	
+}
+
 /*********************************************************************************************************
 ** Function name:       MifareCard_Test()
 ** Descriptions:        mifareCard测试

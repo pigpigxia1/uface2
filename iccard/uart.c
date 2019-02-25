@@ -14,7 +14,7 @@
 
 
 static int S_fd;
-const char *Serial_Dev = "/dev/ttyS0";
+const char *Serial_Dev = "/dev/ttyS1";
 
 int set_opt(int fd,int nSpeed,int nBits,char nEvent,int nStop)
 {
@@ -131,10 +131,11 @@ int serial_read(int fd,unsigned char data[],int num)
 	int count = 3;
 	unsigned char *pdat = data;
 	int ret;
+	int readn = 0;
 	fd_set readfs;
 	struct timeval Timeout;
 	
-	Timeout.tv_usec = 50000;
+	Timeout.tv_usec = 200000;
 	Timeout.tv_sec  = 0;
 	FD_ZERO(&readfs);
 	FD_SET(fd, &readfs);
@@ -159,10 +160,11 @@ int serial_read(int fd,unsigned char data[],int num)
 		{
 			if (FD_ISSET(fd,&readfs))
 			{
-				
-				ret = read( fd, pdat, read_num);
-				read_num -= ret;
-				pdat += ret;
+				pdat += readn;
+				readn = read( fd, pdat, read_num);
+				if(readn < 0)
+					return 0;
+				read_num -= readn;
 				//printf("serial_read ret=%d\n",ret);
 			}
 		}

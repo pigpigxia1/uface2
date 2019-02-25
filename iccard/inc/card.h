@@ -1,6 +1,16 @@
 #ifndef __CARD_H
 #define __CARD_H
 
+#define READ_MODE_MASK 0xFFFF
+#define MASK_LEN 16
+
+#define READ_POLL 0x0
+#define READ_M1_CARD 0x01
+#define READ_CPU_CARD 0x02
+#define SET_FLAG(mode,block,gpio) ((block<<24)|(mode<<MASK_LEN)|gpio)
+#define GET_MODE(flag)     ((flag>>MASK_LEN)&0xFF)
+#define GET_BLOCK(flag)     ((flag>>24)&0xFF)
+#define GET_GPIO(flag)     (flag&0xFFFF)
 
 #define TYPE_A_M   0x01
 #define TYPE_A_NFC 0x02
@@ -23,7 +33,7 @@ int Get_Card_ID(int fd,unsigned char *Id_buf,int type,int *IC_type);
 
 int card_pthread_init(int fd,unsigned char *key,int gpio);
 unsigned char Write_Card_Info(int fd,unsigned char *old_key,unsigned char *new_key,unsigned char *buff,int len);
-int Read_Card(int fd,unsigned char *key,unsigned char *buff,int len,int gpio);
+int Read_Card(int fd,unsigned char *key,unsigned char *buff,int len,unsigned int flag);
 int Get_Uid(int fd,unsigned char *buff,int len);
 
 #endif

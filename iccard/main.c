@@ -37,7 +37,7 @@
 
 
 
-const unsigned char new_key[8] = {0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff};
+const unsigned char new_key[8] = {0x6d,0x69,0x6c,0x6c,0x69,0x6f,0xff,0xff};
 //unsigned char default_key[8] = {0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff};
 unsigned char M1_buff[500] = {0x00,0x20,0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88,0x99,0xaa,0xbb,0xcc,0xdd,0xee,0xfe,0xff};
 unsigned char CPU_buff[1024] = {0x00,0x64,0x12,0x23,0x34,0x45,0x56,0x67,0x78,0x89,0x00};
@@ -47,7 +47,7 @@ int main(void)
 #if 1
 	int fd = -1;
 	int i,n;
-	int cmd;
+	unsigned char cmd;
 	//clock_t t1,t2;
 	struct timeval start,end;
 	int len;
@@ -99,6 +99,9 @@ int main(void)
 	
 	Write_Card_Info(fd,default_key,new_key,Pbuf);*/
 	//fd = uart_init(9600,8,'N',1);
+	
+	//printf("enter mode:(0 or 1)\n");
+	//scanf("%x",&cmd);
 	while(1)
 	{
 		//TyteA_Test(fd);
@@ -108,7 +111,7 @@ int main(void)
 		
 		//fd = uart_init(9600,8,'N',1);
 		gettimeofday(&start, NULL);
-		len = Read_Card(fd,new_key,dat_buf,2048,1019);
+		len = Read_Card(fd,new_key,dat_buf,2048,SET_FLAG(0,1,1019));
 		//len = Get_Uid(fd,dat_buf,2048);
 		gettimeofday(&end, NULL);
 		//t2 = clock();
@@ -117,9 +120,11 @@ int main(void)
 		{
 			printf("total time = %dms\n",(end.tv_sec - start.tv_sec)*1000 + (end.tv_usec - start.tv_usec)/1000);
 			Print(dat_buf,len);
+			if(cmd)
+				printf("%s\n",dat_buf);
 		}
 		//close(fd);
-		sleep(1);
+		//sleep(1);
 			
 	}
 	

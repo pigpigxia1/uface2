@@ -261,6 +261,70 @@ static void create_uid(unsigned char *picc_atqa,unsigned char *picc_uid,unsigned
 	}
 	
 }
+
+/*****************************************
+名称: TyteA_Uid_Read                           
+功能: 读卡信息                                   
+输入:  fd：
+		uid：卡uid信息，																													
+                                                                                                                                  
+输出:                                                  
+                                      
+    返回TRUE or FALSE       
+*****************************************/
+static unsigned char TyteA_Uid_Read (int fd,unsigned char *uid,int gpio)
+{
+    unsigned char statues = FALSE;
+    unsigned char num=0;
+	unsigned char nbit = 0;
+    unsigned char picc_atqa[2];                               /* 储存寻卡返回卡片类型信息     */
+    //static unsigned char picc_uid[15];                       /* 储存卡片UID信息              */
+    unsigned char picc_sak[3];            /* 储存卡片应答信息      ,可判断是否为CPU卡  b6 = 0:不是cpu     */
+	
+	pcd_RST(fd,gpio);
+	FM175X_SoftReset( fd);                                  /* FM175xx软件复位              */
+	Set_Rf(fd, 3 );                                         /* 打开双天线                   */
+	Pcd_ConfigISOType(fd, 0 );                              /* ISO14443寄存器初始化         */  
+	while(num <2 ) {
+        statues = TypeA_CardActive(fd, picc_atqa,uid,picc_sak ,&nbit);      /* 激活卡片                     */
+        if ( statues == TRUE ) {
+            return TRUE;
+        }
+        else {
+            num++;
+        }                    
+    }
+	
+	return FALSE;
+    //Delay100us(100);
+    //LED_RedOff();
+}
+
+static int deal_date(unsigned char*source,unsigned char *buff)
+{
+	memcpy(&buff[1],&source[5],10);
+	if(source[0] > '0' || source[1] > '0')
+	{
+		buff[3] = 'A' + (source[0] - '0')*10 + (source[1] - '1');
+		buff[11] = '\0';
+	}
+	buff[0] = 10;
+	return 11;
+}
+/****************************************************************
+名称: M1_Block_Read                           
+功能: 读卡信息                                   
+输入:  key：卡密钥
+		buff：数据缓存，包括两卡号以及卡信息																													
+                                                                                                                                  
+输出:                                                  
+                                      
+    返回读数据长度                                           
+*****************************************************************/
+/*static void M1_Block_Read(int fd,unsigned char *key,unsigned char *buff,unsigned char len,unsigned char sector,unsigned char mode)
+{
+	
+}*/
 /****************************************************************
 名称: Read_Card                           
 功能: 读卡信息                                   
@@ -271,12 +335,11 @@ static void create_uid(unsigned char *picc_atqa,unsigned char *picc_uid,unsigned
                                       
     返回读数据长度                                           
 *****************************************************************/
-int Read_Card(int fd,unsigned char *key,unsigned char *buff,int len,int gpio)
+static int _Read_Card(int fd,unsigned char *key,unsigned char *buff,int len,unsigned int gpio)
 {
 	int n = 0;
 
 	unsigned char statues = FALSE;
-
     unsigned char num=0;
 	int ret_len = 0;
 	unsigned char nbit = 0;
@@ -288,13 +351,14 @@ int Read_Card(int fd,unsigned char *key,unsigned char *buff,int len,int gpio)
     unsigned char picc_sak[3];                            // 储存卡片应答信息
 	unsigned char id[64] = {0};     
 	unsigned char log_buf[64];
+	
 
 
-	if(fd <= 0 || !key || !buff || len <= 0)
+	/*if(fd <= 0 || !key || !buff || len <= 0)
 	{
 		printf("please check Parameters\n");
 		return 0;
-	}
+	}*/
 	
 	Check_Machine(fd,gpio);
 	
@@ -307,16 +371,9 @@ int Read_Card(int fd,unsigned char *key,unsigned char *buff,int len,int gpio)
 			Set_Rf(fd, 3 );                   // 打开双天线              
 			Pcd_ConfigISOType(fd, 0 );       // ISO14443寄存器初始化     
 			while(num <2 ) {
-				try{
-					statues = TypeA_CardActive(fd, picc_atqa,id,picc_sak ,&nbit);   //激活卡片 	
-				}catch(MANPROCSIG_SEGV){ //Catch the exception
-					//printf("NULL pointer !!\r\n");
-				}finally{
-					//printf("DONE \r\n");
-				}end_try; 	
+				statues = TypeA_CardActive(fd, picc_atqa,id,picc_sak ,&nbit);   //激活卡片 	
 				if ( statues == TRUE ) 
 				{
-
 					buff[0] = nbit;
 					if(len < nbit)
 					{
@@ -341,29 +398,20 @@ int Read_Card(int fd,unsigned char *key,unsigned char *buff,int len,int gpio)
 			FM175X_SoftReset( fd);                                      // FM175xx软件复位       
 			Pcd_ConfigISOType(fd, 1 );                              // ISO14443寄存器初始化      
 			Set_Rf( fd,3 );                                         // 打开双天线      
-			try{
-				statues = TypeB_WUP(fd,&rec_len,id,pupi);              // 寻卡                      
-				if ( statues == TRUE ) {
-					statues = TypeB_Select(fd,pupi,&rec_len,id); 
-				}
-			}catch(MANPROCSIG_SEGV){ //Catch the exception
-					//printf("NULL pointer !!\r\n");
-			}finally{
-				//printf("DONE \r\n");
-			}end_try; 	
+			
+			statues = TypeB_WUP(fd,&rec_len,id,pupi);              // 寻卡                      
+			if ( statues == TRUE ) {
+				statues = TypeB_Select(fd,pupi,&rec_len,id); 
+			}
+			
 			if ( statues == TRUE ) {
 				//LED_RedOn();
 				nbit = rec_len;
 				//buff[0] = TYPE_B_ID;
 				buff[0] = nbit;
 				//memcpy(&buff[1],&nbit,1);
-				try{
-					statues = TypeB_GetUID(fd,&rec_len,&id[0]);
-				}catch(MANPROCSIG_SEGV){ //Catch the exception
-						//printf("NULL pointer !!\r\n");
-				}finally{
-					//printf("DONE \r\n");
-				}end_try; 	
+				
+				statues = TypeB_GetUID(fd,&rec_len,&id[0]);
 				if(statues == TRUE) {
 					memcpy(&buff[1],id,buff[0]);
 					swp_uid(&buff[1],buff[0]);
@@ -380,22 +428,13 @@ int Read_Card(int fd,unsigned char *key,unsigned char *buff,int len,int gpio)
 				
 			}
 			Set_Rf(fd, 0 );                                                // 关闭天线   
-
-		/* }catch(MANPROCSIG_SEGV){ //Catch the exception
-			printf("NULL pointer !!\r\n");
-		}catch_else{
-			printf("Unknow Error!!\r\n");
-		}finally{
-			//printf("DONE \r\n");
-		}end_try; */
-		//typeA
 		
 	}
 	else if(machine_type == 2 )
 	{
-		usleep(50000);
 		n = serial_read(fd,buff,1);
-		printf(">>>>>>>n1 = %d\n",n);
+		usleep(50000);
+		
 		if( n > 0)
 		{	
 			if(buff[0] > 10)
@@ -407,39 +446,7 @@ int Read_Card(int fd,unsigned char *key,unsigned char *buff,int len,int gpio)
 			n = serial_read(fd,&buff[1],buff[0]);
 			if(n > 0)
 				ret_len = n + 1;
-			printf(">>>>>>>n = %d\n",n);
-			usleep(50000);
 			tcflush(fd, TCIFLUSH);
-			//printf("read_buf[0]=%x\n",read_buf[0]);
-			/*buff[0] = read_buf[0];
-			read_len = read_buf[0];
-			Pbuf = buff;
-			printf("read_len = %d",read_len);
-			while(read_len > 0 && timeout < 10)
-			{
-				usleep(50000);
-				Pbuf += n;
-				n = read(fd,Pbuf,read_len);
-				read_len -= n;
-				timeout++;
-				
-			}
-			/*do{
-				Pbuf += n;
-				n = read(fd,Pbuf,read_len);
-				read_len -= n; 
-				usleep(20000);
-				timeout++;
-			}while(read_len > 0 && timeout < 10);*/
-			/*if(timeout < 10)
-			{
-				//tcflush(fd, TCIFLUSH);
-				ret_len = read_buf[0] + 1;
-			}
-			else
-			{
-				ret_len = 0;
-			}*/
 						
 		}
 		//
@@ -454,18 +461,77 @@ int Read_Card(int fd,unsigned char *key,unsigned char *buff,int len,int gpio)
 	
 
 end:
-
+	
 	if(ret_len > 0)
 	{
 		HextoStr(buff,ret_len,log_buf);
 		log_write(log_buf);
 	}
-	if(ret_len != buff[0] + 1)
+	if((ret_len != buff[0] + 1)|| ret_len == 1)
 		return 0;
 	//printf("ret_len=%d\n",ret_len);
 	return ret_len;
 }
 
 
-
+int Read_Card(int fd,unsigned char *key,unsigned char *buff,int len,unsigned int flag)
+{
+	unsigned char block;
+	unsigned int read_mode = 0;
+	unsigned int gpio = 0;
+	unsigned char picc_uid[15];
+	unsigned char block_buff[16];
+	unsigned char statues = FALSE;
+	int ret = 0;
+	
+	
+	if(fd <= 0 || !key || !buff || len <= 0)
+	{
+		printf("please check Parameters\n");
+		return 0;
+	}
+	
+	read_mode = GET_MODE(flag);
+	gpio = GET_GPIO(flag);
+	block = GET_BLOCK(flag);
+	
+	//printf("mode %x gpio %d block %x\n",read_mode,gpio,block);
+	switch(read_mode)
+	{
+		case READ_POLL:
+			ret = _Read_Card(fd,key,buff,len,gpio);
+			break;
+		case READ_M1_CARD:
+			if(TyteA_Uid_Read (fd,picc_uid,gpio) == TRUE)
+			{
+				statues = Mifare_Auth(fd,block>>2,0,key,picc_uid);      // 校验密码                     
+				if ( statues == TRUE ) {
+					//printf("\nAuth Ok!\r\n");
+					if(!Mifare_Blockread(fd,block,block_buff))
+					{
+						printf("blockread error!\n");
+						return -1;
+					}
+					ret = deal_date(block_buff,buff);
+	
+					//printf("read data:");
+					//Print(block_buff,16);
+					//printf("\n");
+				}
+				else {
+					printf("\nAuth error!\r\n");
+				}
+			}
+			
+			break;
+		case READ_CPU_CARD:
+		
+			break;
+		default:
+			return 0;
+	}
+	
+	return ret;
+	
+}
 

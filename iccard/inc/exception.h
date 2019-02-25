@@ -152,7 +152,7 @@ void log_write(unsigned char *str);
         close(log_fd);\
     }while(0)*/
 
-#define TEST_LOG(test)  #test
+
 
 #undef T
 #endif /* EXCEPTION_H_ */
