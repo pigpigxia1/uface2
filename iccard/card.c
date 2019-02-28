@@ -46,10 +46,12 @@ unsigned char Check_Machine(int fd,int gpio)
 {
 	if(machine_type == 0)
 	{
+	#ifdef ENABLE_LOG
 		if(rename(LOG_FILE, LOG_FILE_B) < 0)
 		{
 			printf("rename failed\n");
 		}
+	#endif
 		pcd_RST(fd,gpio);
 		Read_Reg(fd,ControlReg);
 		Write_Reg(fd,ControlReg, 0x10);
